@@ -1,5 +1,5 @@
-#TOKEN = "564808836:AAG_QoeMiclCT5U7TC7eHd2TcFkn21tk6FU"
-TOKEN = "488025339:AAEkCdi5LudTmYIjxsVbmCopeP2NZc7NS7w"
+TOKEN = "564808836:AAG_QoeMiclCT5U7TC7eHd2TcFkn21tk6FU"
+#TOKEN = "488025339:AAEkCdi5LudTmYIjxsVbmCopeP2NZc7NS7w"
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
 import logging
@@ -18,7 +18,7 @@ class User:
 		self.seen = []
 		self.submited = []
 		self.approved = []
-		self.current_problem = None
+		self.current_problem = ""
 		if entries:
 			self.__dict__.update(entries)
 		# state is one of this: start, challenge, game_state, thinking, waiting_upload
@@ -33,7 +33,7 @@ def start(bot, update):
 		print("*******************************************************************************************")
 	user = user_dict[str(chat_id)]
 	user.state = "start"
-	update.message.reply_text('سلام')
+	update.message.reply_text('بسم الله الرحمن الرحیم')
 	reply_keyboard = [['مسابقه عید', 'درباره ما', 'امکانات دیگر']]
 	update.message.reply_text('سلام', reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
 	write_json()
@@ -48,46 +48,37 @@ def update_handler(bot, update):
 		if(user.state == "start"):
 			if(update.message.text):
 				if(update.message.text == "مسابقه عید"):
-					reply_keyboard = [['توضیحات', 'شرکت در مسابقه'],['بازگشت']]
-					update.message.reply_text('یکی از گزینه‌های زیر را انتخاب فرمایید', reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
 					user.state = "challenge"
 				if(update.message.text == "درباره ما"):
-					update.message.reply_text('محتوای درباره ما')
+					update.message.reply_text('این بات با همکاری مشترک احسان مهرعلیان و محمدمهدی سمیعی پاقلعه نوشته شده است! ')
 		elif(user.state == "challenge"):
 			if(update.message.text):
 				if(update.message.text == "توضیحات"):
 					update.message.reply_text('توضیحات مسابقه اینجا نوشته خواهد شد')
 					user.state = "challenge"
 				if(update.message.text == "شرکت در مسابقه"):
-					reply_keyboard = [['دریافت سوال جدید'],['وضعیت سوال‌های ارسال شده'],['جدول امتیازات'],["بازگشت"]]
-					update.message.reply_text('لطفا یکی از گزینه‌های زیر را انتخاب کنید', reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
 					user.state = "game_state"
 				if(update.message.text == "بازگشت"):
-					reply_keyboard = [['مسابقه عید', 'درباره ما', 'امکانات دیگر']]
-					update.message.reply_text('یکی از گزینه‌های زیر را انتخاب کنید', reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
 					user.state = "start"
 		elif(user.state == "game_state"):
 			if(update.message.text):
+				if(update.message.text == "رسیدگی به وضع سوال فعلی"):
+					update.message.reply_text('حلش کن دیگه!')
+					user.state = "thinking"
 				if(update.message.text == "دریافت سوال جدید"):
-					#TODO ارسال pdf
 					if len(user.seen) >= len(problem_list):
 						update.message.reply_text('فعلا سوال جدیدی وجود ندارد! منتظر سوالات جدید ما باشید!')
-						reply_keyboard = [['دریافت سوال جدید'],['وضعیت سوال‌های ارسال شده'],['جدول امتیازات'],["بازگشت"]]
-						update.message.reply_text('لطفا یکی از گزینه‌های زیر را انتخاب کنید', reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
 						user.state = "game_state"
 					else:
-						random_question = random.choice(list(set(problem_list) ^ set(user.seen)))
-						user.current_problem = random_question
-						user.seen.append(random_question)
 						try:
+							random_question = random.choice(list(set(problem_list) ^ set(user.seen)))
 							bot.send_document(chat_id, document=open('./problems/'+random_question, 'rb'))
-							reply_keyboard = [['ارسال پاسخ', 'انصراف']]
-							update.message.reply_text('لطفا یکی از گزینه‌های زیر را انتخاب کنید', reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+							user.current_problem = random_question
+							user.seen.append(random_question)
 							user.state = "thinking"
-						except TimedOut:
-							update.message.reply_text("بله درود به شرف تو ")
+						except:
+							update.message.reply_text("به علت خطا در شبکه شرمنده ام یه بار دیگه بزن رو دریافت سوال جدید :) باز هم عذر میخوام :) ")
 				if(update.message.text == "وضعیت سوال‌های ارسال شده"):
-					pass
 					user.state = "game_state"
 					text =  "\n".join(user.seen)
 					update.message.reply_text("سوالات مشاهده شده توسط شما: \n"+text)
@@ -98,10 +89,7 @@ def update_handler(bot, update):
 					user.state = "game_state"
 					#TODO جدول امتیازات
 				if(update.message.text == "بازگشت"):
-					reply_keyboard = [['توضیحات', 'شرکت در مسابقه'],['بازگشت']]
-					update.message.reply_text('یکی از گزینه‌های زیر را انتخاب فرمایید', reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
 					user.state = "challenge"
-
 		elif(user.state == "thinking"):
 			if(update.message.text):
 				if(update.message.text):
@@ -110,8 +98,10 @@ def update_handler(bot, update):
 						user.state = "waiting_upload"
 					if(update.message.text == "انصراف"):
 						update.message.reply_text('شما این سوال را باختید!')
-						reply_keyboard = [['دریافت سوال جدید'],['وضعیت سوال‌های ارسال شده'],['جدول امتیازات'],["بازگشت"]]
-						update.message.reply_text('لطفا یکی از گزینه‌های زیر را انتخاب کنید', reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+						user.current_problem = ""
+						user.state = "game_state"
+					if(update.message.text == "بازگشت"):
+						update.message.reply_text('امیدوارم که برگردی و سوال را حل کنی!')
 						user.state = "game_state"
 		elif(user.state == "waiting_upload"):
 			if(update.message.document):
@@ -121,13 +111,35 @@ def update_handler(bot, update):
 					user.current_problem = None
 					update.message.reply_text("فایل دریافت شد")
 					update.message.forward(73675932)#ehssan_me chat_id
-					reply_keyboard = [['دریافت سوال جدید'],['وضعیت سوال‌های ارسال شده'],['جدول امتیازات']]
-					update.message.reply_text('لطفا یکی از گزینه‌های زیر را انتخاب کنید', reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+					user.current_problem = ""
 					user.state = "game_state"
 				except:
 					update.message.reply_text("دوباره بفرست لعنتی")
 			else:
 				update.message.reply_text("لطفا فقط pdf ارسال کنید")
+		
+		#show state keyboard!!!!!! 
+		if(user.state == "start"):
+			reply_keyboard = [['مسابقه عید', 'درباره ما', 'امکانات دیگر']]
+			update.message.reply_text('سلام', reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+		elif(user.state == "challenge"):
+			reply_keyboard = [['توضیحات', 'شرکت در مسابقه'],['بازگشت']]
+			update.message.reply_text('یکی از گزینه‌های زیر را انتخاب فرمایید', reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+		elif(user.state == "game_state"):
+			if user.current_problem is "":
+				reply_keyboard = [['دریافت سوال جدید'],['وضعیت سوال‌های ارسال شده'],['جدول امتیازات']]
+			else:
+				reply_keyboard = [['رسیدگی به وضع سوال فعلی'],['وضعیت سوال‌های ارسال شده'],['جدول امتیازات']]
+			update.message.reply_text('لطفا یکی از گزینه‌های زیر را انتخاب کنید', reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+			pass
+		elif(user.state == "thinking"):
+			reply_keyboard = [['ارسال پاسخ', 'انصراف'],['بازگشت']]
+			update.message.reply_text('لطفا یکی از گزینه‌های زیر را انتخاب کنید', reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+			pass
+		elif(user.state == "waiting_upload"):
+			update.message.reply_text('فایل خود را آپلود کنید')
+			pass
+
 		write_json()
 
 def error_callback(bot, update, error):

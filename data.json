@@ -1,1 +1,1 @@
-{"143266172": {"current_problem": null, "approved": [], "seen": ["2.pdf", "3.pdf"], "submited": ["2.pdf", "3.pdf"], "state": "game_state"}, "73675932": {"current_problem": null, "approved": [], "seen": ["3.pdf"], "submited": ["3.pdf"], "state": "game_state"}}
+{"143266172": {"seen": [], "state": "game_state", "submited": [], "current_problem": "", "approved": []}, "73675932": {"seen": ["3.pdf"], "state": "start", "submited": ["3.pdf"], "current_problem": null, "approved": []}}
